@@ -130,3 +130,26 @@ sample response
     "data": {}
 }
 ```
+## change password
+
+Method Type: POST
+URI:: /api/v1/user-mgmt/change-password
+
+sample request
+```
+{
+    "oldPassword": "14785asd"
+    "newPassword": "14785asd"
+}
+```
+sample response
+```
+{
+    "status": {
+        "code": 200,
+        "message": "Password changed successfully",
+        "type": "success"
+    },
+    "data": {}
+}
+```

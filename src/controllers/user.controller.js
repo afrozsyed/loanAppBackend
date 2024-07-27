@@ -160,5 +160,31 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
   }
 });
 
+// controller method to change password
+const changePassword = asyncHandler(async (req, res) => {
+  // get the old and new passwords from the request
+  console.log("++body::",req.body);
+  const { oldPassword, newPassword } = req.body;
+  // validate the passwords fields
+  if (
+    [oldPassword, newPassword].some((field) => {
+      return isNullOrEmpty(field);
+    })
+  ) {
+    throw new ApiError(400, "mandatory fields are missing");
+  }
+  // check if the old password is matched
+  const user = await User.findById(req.user?._id);
+  const isPasswordValid = await user.isPasswordMatched(oldPassword);
+  if (!isPasswordValid) throw new ApiError(400, "Invalid old password");
+  // save the new password in database
+  user.password = newPassword;
+  await user.save({ validateBeforeSave: true });
+  // send back the response
+  return res
+    .status(200)
+    .json(new ApiResponse(200, "Password changed successfully"));
+});
 
-export { registerUser, loginUser, logoutUser, refreshAccessToken};
+
+export { registerUser, loginUser, logoutUser, refreshAccessToken, changePassword};
