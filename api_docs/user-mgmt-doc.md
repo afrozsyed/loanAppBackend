@@ -107,3 +107,26 @@ sample response
     "data": {}
 }
 ```
+
+## refresh a user session
+when the user got a timeout or other server errors then it sends back a 
+refresh token to the api and the api will generate and send back a new accessToken and refresh token to login again.
+
+Method Type: POST
+URI:: /api/v1/user-mgmt/refresh-token
+
+sample request
+```
+```
+
+sample response
+```
+{
+    "status": {
+        "code": 200,
+        "message": "logout successfull",
+        "type": "success"
+    },
+    "data": {}
+}
+```
