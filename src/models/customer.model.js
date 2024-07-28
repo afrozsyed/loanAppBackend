@@ -15,7 +15,9 @@ const customerScheema = new mongoose.Schema({
     phoneNumber: {
         type: String,
         required: true,
-        trim: true
+        unique: true,
+        trim: true,
+        index: true
     },
     address: {
         type: String,
@@ -37,14 +39,13 @@ const customerScheema = new mongoose.Schema({
     idProof: {
         type: String
     },
-    accountNumber: {
+    aadharNumber: {
         type: String,
         required: true,
         unique: true,
-        index: true
     }
 },{
-    timestamps: true,
+    timestamps: true
 });
 
 export const Customer = mongoose.model("Customer", customerScheema);

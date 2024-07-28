@@ -1,4 +1,6 @@
 import { User } from "../models/user.model.js";
+import {ApiError} from "../utils/ApiError.js";
+import { Sequence } from "../models/sequence.model.js";
 
 const generateAccessAndRefreshTokens = async (user_id) => {
   try {
@@ -16,4 +18,13 @@ const generateAccessAndRefreshTokens = async (user_id) => {
   }
 };
 
-export { generateAccessAndRefreshTokens };
+const getNextSequenceValue = async (seqName) => {
+  const sequenceDocument = await Sequence.findOneAndUpdate(
+    { sequenceName: seqName },
+    { $inc: { sequenceValue: 1 } },
+    { new: true, upsert: true }
+  );
+  return sequenceDocument.value;
+};
+
+export { generateAccessAndRefreshTokens , getNextSequenceValue};
