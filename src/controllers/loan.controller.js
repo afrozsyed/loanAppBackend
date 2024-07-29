@@ -1,4 +1,5 @@
 import asyncHandler from "../utils/asyncHandler.js";
+import mongoose from "mongoose";
 import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/apiResponse.js";
 import { isNullOrEmpty } from "../utils/validationUtil.js";
@@ -124,7 +125,7 @@ const createLoanForNewCustomer = asyncHandler(async (req, res) => {
     // get loan details
     const {
       principalAmount,
-      intrestRate,
+      interestRate,
       tenure,
       guarantorName,
       guarantorPhoneNumber,
@@ -136,17 +137,18 @@ const createLoanForNewCustomer = asyncHandler(async (req, res) => {
     if (
       [
         principalAmount,
-        intrestRate,
+        interestRate,
         tenure,
         guarantorName,
         guarantorPhoneNumber,
         guarantorAddress,
         guarantorAadharNumber,
       ].some((field) => {
+        console.log("===Field==",field);
         return isNullOrEmpty(field);
       })
     ) {
-      throw new ApiError(400, "mandatory fields in vehicle are missing");
+      throw new ApiError(400, "mandatory fields in loan are missing");
     }
 
     // Calculate EMI
@@ -157,7 +159,7 @@ const createLoanForNewCustomer = asyncHandler(async (req, res) => {
     );
 
     // Get next account number
-    const accountNumber = await getNextSequenceValue("loanAccountNumberSeq");
+    const accountNumber = await getNextSequenceValue("loanAccountNumberSeq", session);
     console.log("=====account Number====" + accountNumber);
 
     // save the loan details
@@ -166,7 +168,8 @@ const createLoanForNewCustomer = asyncHandler(async (req, res) => {
       customer: savedCustomer._id,
       vehicle: savedVehicle._id,
       principalAmount,
-      intrestRate,
+      principalAmount,
+      interestRate,
       tenure,
       startDate: new Date(),
       emiAmount,

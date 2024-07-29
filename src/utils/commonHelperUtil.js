@@ -18,13 +18,15 @@ const generateAccessAndRefreshTokens = async (user_id) => {
   }
 };
 
-const getNextSequenceValue = async (seqName) => {
+const getNextSequenceValue = async (seqName, session) => {
+  console.log("incomming seqName==",seqName);
   const sequenceDocument = await Sequence.findOneAndUpdate(
     { sequenceName: seqName },
     { $inc: { sequenceValue: 1 } },
-    { new: true, upsert: true }
+    { new: true, upsert: true , session}
   );
-  return sequenceDocument.value;
+  console.log("sequenceDocument==", sequenceDocument);
+  return sequenceDocument.sequenceValue;
 };
 
 export { generateAccessAndRefreshTokens , getNextSequenceValue};

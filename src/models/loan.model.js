@@ -25,6 +25,11 @@ const loanSchema = new mongoose.Schema(
       required: true,      
       trim: true
     },
+    outstandingPrincipal: {
+      type: Number,
+      required: true,      
+      trim: true
+    },
     interestRate: {
       type: Number,
       required: true,      
@@ -45,6 +50,18 @@ const loanSchema = new mongoose.Schema(
       type: Number,
       required: true,      
       trim: true
+    },
+    lastPaymentDate: {
+      type: Date
+    },
+    nextPaymentDate: {
+      type: Date
+    },
+    paidEMIs: {
+      type: Number,
+      required: true,
+      trim: true,
+      default: 0
     },
     guarantorName: {
       type: String,
