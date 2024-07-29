@@ -16,7 +16,8 @@ const calculateEMI = (loanAmount, interestRate, tenure) => {
       monthlyInterestRate *
       Math.pow(1 + monthlyInterestRate, tenure)) /
     (Math.pow(1 + monthlyInterestRate, tenure) - 1);
-  return emi;
+  console.log("EMI::", emi);
+  return Math.floor(emi);
 };
 
 // method to calculate additional intrest per day
@@ -24,13 +25,15 @@ const calculateAdditionalInterest = (loanAmount, interestRate, days) => {
   const dailyInterestRate = interestRate / (365 * 100);
   const additionalInterest = loanAmount * dailyInterestRate * days;
   console.log("Additional Interest::", additionalInterest);
-  return additionalInterest;
+  return Math.ceil(additionalInterest);
 };
 
-// method to calculate the new tenue by keeping the emiAmount same 
+// method to calculate the new tenue by keeping the emiAmount same
 const calculateNewTenue = (loanAmount, interestRate, emiAmount) => {
   const monthlyInterestRate = interestRate / (12 * 100);
-  const tenure = Math.log(emiAmount / (loanAmount * monthlyInterestRate)) / Math.log(1 + monthlyInterestRate);
+  const tenure =
+    Math.log(emiAmount / (emiAmount - loanAmount * monthlyInterestRate)) /
+    Math.log(1 + monthlyInterestRate);
   console.log("New Tenue::", tenure);
   return Math.ceil(tenure);
 };
@@ -161,7 +164,6 @@ const createLoanForNewCustomer = asyncHandler(async (req, res) => {
         guarantorAddress,
         guarantorAadharNumber,
       ].some((field) => {
-        console.log("===Field==",field);
         return isNullOrEmpty(field);
       })
     ) {
@@ -176,7 +178,10 @@ const createLoanForNewCustomer = asyncHandler(async (req, res) => {
     );
 
     // Get next account number
-    const accountNumber = await getNextSequenceValue("loanAccountNumberSeq", session);
+    const accountNumber = await getNextSequenceValue(
+      "loanAccountNumberSeq",
+      session
+    );
     console.log("=====account Number====" + accountNumber);
     // get next payment date
     const nextPaymentDate = new Date();
@@ -194,6 +199,7 @@ const createLoanForNewCustomer = asyncHandler(async (req, res) => {
       tenure,
       startDate: new Date(),
       emiAmount,
+      outstandingUpdateDate: null,
       lastPaymentDate: null,
       nextPaymentDate: nextPaymentDate,
       paidEMIs: 0,
@@ -219,8 +225,9 @@ const createLoanForNewCustomer = asyncHandler(async (req, res) => {
       .json(new ApiResponse(200, "loan created successfully ", savedLoan));
   } catch (error) {
     await session.abortTransaction();
-    session.endSession();
     throw error;
+  } finally {
+    session.endSession();
   }
 });
 
@@ -229,12 +236,15 @@ const updateOutstandingAmount = asyncHandler(async (req, res) => {
   const session = await mongoose.startSession();
   session.startTransaction();
   try {
-    const loans = await Loan.find().populate('customer');
+    const loans = await Loan.find().populate("customer");
+    console.log("Loans::", loans);
     const currentDate = new Date();
 
-    for (const loan of loans){
-      const lastPaymentDate = loan.lastPaymentDate || loan.startDate;
-      const daysSinceLastPayment = Math.floor((currentDate - lastPaymentDate) / (1000 * 60 * 60 * 24));
+    for (const loan of loans) {
+      const lastPaymentDate = loan.outstandingUpdateDate || loan.startDate;
+      const daysSinceLastPayment = Math.floor(
+        (currentDate - lastPaymentDate) / (1000 * 60 * 60 * 24)
+      );
 
       if (daysSinceLastPayment > 0) {
         const additionalInterest = calculateAdditionalInterest(
@@ -252,15 +262,17 @@ const updateOutstandingAmount = asyncHandler(async (req, res) => {
         );
 
         loan.tenure = newTenure;
+        loan.outstandingUpdateDate = currentDate;
       }
 
-      await loan.save({session})
+      await loan.save({ session });
     }
 
     await session.commitTransaction();
     session.endSession();
-    res.status(200).json(new ApiResponse(200, "Outstanding amount updated successfully"));
-
+    res
+      .status(200)
+      .json(new ApiResponse(200, "Outstanding amount updated successfully"));
   } catch (error) {
     await session.abortTransaction();
     session.endSession();

@@ -48,23 +48,44 @@ request URI: /api/v1/loan-mgmt/create-newcust-loan
         "type": "success"
     },
     "data": {
-        "accountNumber": "29",
-        "customer": "66a71233698d7da9547d875c",
-        "vehicle": "66a71233698d7da9547d875f",
+        "accountNumber": "30",
+        "customer": "66a737714c22b64bbb51ef03",
+        "vehicle": "66a737714c22b64bbb51ef06",
         "principalAmount": 10000,
+        "outstandingPrincipal": 10000,
         "interestRate": 10,
+        "actualTenure": 24,
         "tenure": 24,
-        "startDate": "2024-07-29T03:53:23.774Z",
+        "startDate": "2024-07-29T06:32:17.789Z",
         "emiAmount": 461.44926337516654,
+        "lastPaymentDate": null,
+        "nextPaymentDate": "2024-08-29T06:32:17.785Z",
+        "paidEMIs": 0,
         "guarantorName": "guarantor_test",
         "guarantorPhoneNumber": "1452369874",
         "guarantorAddress": "guarantorAddress test",
         "guarantorAadharNumber": "123652145236",
         "status": "active",
-        "_id": "66a71233698d7da9547d8762",
-        "createdAt": "2024-07-29T03:53:23.777Z",
-        "updatedAt": "2024-07-29T03:53:23.777Z",
+        "_id": "66a737714c22b64bbb51ef09",
+        "createdAt": "2024-07-29T06:32:17.791Z",
+        "updatedAt": "2024-07-29T06:32:17.791Z",
         "__v": 0
     }
 }
+```
+
+
+## update the Outstanding amount 
+update the Outstanding amount as per the intrest per day. so that the amount can be recalculated,
+
+this should be called as a backend job or a click per month or day so that the outstanding amount can be recalculated as per the intrest charged.
+
+request type: POST
+request URI: /api/v1/loan-mgmt/update-outstanding-amount
+
+sample request
+``` ```
+
+sample response 
+```
 ```
