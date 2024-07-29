@@ -35,6 +35,11 @@ const loanSchema = new mongoose.Schema(
       required: true,      
       trim: true
     },
+    actualTenure: {
+      type: Number,
+      required: true,
+      trim: true
+    },
     tenure: {
       type: Number,
       required: true,      

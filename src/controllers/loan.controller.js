@@ -19,6 +19,23 @@ const calculateEMI = (loanAmount, interestRate, tenure) => {
   return emi;
 };
 
+// method to calculate additional intrest per day
+const calculateAdditionalInterest = (loanAmount, interestRate, days) => {
+  const dailyInterestRate = interestRate / (365 * 100);
+  const additionalInterest = loanAmount * dailyInterestRate * days;
+  console.log("Additional Interest::", additionalInterest);
+  return additionalInterest;
+};
+
+// method to calculate the new tenue by keeping the emiAmount same 
+const calculateNewTenue = (loanAmount, interestRate, emiAmount) => {
+  const monthlyInterestRate = interestRate / (12 * 100);
+  const tenure = Math.log(emiAmount / (loanAmount * monthlyInterestRate)) / Math.log(1 + monthlyInterestRate);
+  console.log("New Tenue::", tenure);
+  return Math.ceil(tenure);
+};
+
+// creating a loan for the New Customers. need to have all the details of the customer, vehicle and loan
 const createLoanForNewCustomer = asyncHandler(async (req, res) => {
   // collect Date from the request body
   console.log("Request Body::", req.body);
@@ -161,6 +178,9 @@ const createLoanForNewCustomer = asyncHandler(async (req, res) => {
     // Get next account number
     const accountNumber = await getNextSequenceValue("loanAccountNumberSeq", session);
     console.log("=====account Number====" + accountNumber);
+    // get next payment date
+    const nextPaymentDate = new Date();
+    nextPaymentDate.setMonth(nextPaymentDate.getMonth() + 1);
 
     // save the loan details
     const newLoan = new Loan({
@@ -168,11 +188,15 @@ const createLoanForNewCustomer = asyncHandler(async (req, res) => {
       customer: savedCustomer._id,
       vehicle: savedVehicle._id,
       principalAmount,
-      principalAmount,
+      outstandingPrincipal: principalAmount,
       interestRate,
+      actualTenure: tenure,
       tenure,
       startDate: new Date(),
       emiAmount,
+      lastPaymentDate: null,
+      nextPaymentDate: nextPaymentDate,
+      paidEMIs: 0,
       guarantorName,
       guarantorPhoneNumber,
       guarantorAddress,
@@ -200,4 +224,48 @@ const createLoanForNewCustomer = asyncHandler(async (req, res) => {
   }
 });
 
-export { createLoanForNewCustomer };
+// method to update the outstanding amount of the loan as per the daily intrest rates.
+const updateOutstandingAmount = asyncHandler(async (req, res) => {
+  const session = await mongoose.startSession();
+  session.startTransaction();
+  try {
+    const loans = await Loan.find().populate('customer');
+    const currentDate = new Date();
+
+    for (const loan of loans){
+      const lastPaymentDate = loan.lastPaymentDate || loan.startDate;
+      const daysSinceLastPayment = Math.floor((currentDate - lastPaymentDate) / (1000 * 60 * 60 * 24));
+
+      if (daysSinceLastPayment > 0) {
+        const additionalInterest = calculateAdditionalInterest(
+          loan.outstandingPrincipal,
+          loan.interestRate,
+          daysSinceLastPayment
+        );
+
+        loan.outstandingPrincipal += additionalInterest;
+
+        const newTenure = calculateNewTenue(
+          loan.outstandingPrincipal,
+          loan.interestRate,
+          loan.emiAmount
+        );
+
+        loan.tenure = newTenure;
+      }
+
+      await loan.save({session})
+    }
+
+    await session.commitTransaction();
+    session.endSession();
+    res.status(200).json(new ApiResponse(200, "Outstanding amount updated successfully"));
+
+  } catch (error) {
+    await session.abortTransaction();
+    session.endSession();
+    throw error;
+  }
+});
+
+export { createLoanForNewCustomer, updateOutstandingAmount };

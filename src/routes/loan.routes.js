@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { createLoanForNewCustomer } from "../controllers/loan.controller.js";
+import { createLoanForNewCustomer, updateOutstandingAmount } from "../controllers/loan.controller.js";
 
 const router = Router();
 
@@ -9,6 +9,7 @@ router.route("/test").get((req, res) => {
 });
 
 router.route("/create-newcust-loan").post(createLoanForNewCustomer);
+router.route("/update-outstanding-amount").post(updateOutstandingAmount);
 
 
 export default router;
