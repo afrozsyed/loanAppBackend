@@ -12,6 +12,7 @@ import {
   calculateEMI,
   calculateNewTenue,
 } from "../utils/commonHelperUtil.js";
+import { Payment } from "../models/payment.model.js";
 
 // creating a loan for the New Customers. need to have all the details of the customer, vehicle and loan
 const createLoanForNewCustomer = asyncHandler(async (req, res) => {
@@ -255,4 +256,45 @@ const updateOutstandingAmount = asyncHandler(async (req, res) => {
   }
 });
 
-export { createLoanForNewCustomer, updateOutstandingAmount };
+// method to get the details of all the loans
+const getLoanDetails = asyncHandler(async (req, res) => {
+  // fetch all the loan details
+  const loans = await Loan.find()
+    .populate({
+      path: "customer",
+      select: "-createdAt -updatedAt",
+    })
+    .populate({
+      path: "vehicle",
+      select: "-createdAt -updatedAt",
+    })
+    .select(" -createdAt -updatedAt");
+  console.log("loans from DB :::", loans);
+
+  // Adding payments details to each loan
+  const loanDetailsWithPayments = await Promise.all(
+    loans.map(async (loan) => {
+      const paymentsPerLoan = await Payment.find({ loanId: loan._id }).select(
+        "-createdAt -updatedAt"
+      );
+      console.log("++++paymentsPerLoan++", paymentsPerLoan);
+
+      return {
+        ...loan.toObject(), // Convert Mongoose document to a plain JS object
+        payments: paymentsPerLoan,
+      };
+    })
+  );
+
+  res
+    .status(200)
+    .json(
+      new ApiResponse(
+        200,
+        "loan details fetched successfully",
+        loanDetailsWithPayments
+      )
+    );
+});
+
+export { createLoanForNewCustomer, updateOutstandingAmount, getLoanDetails };
