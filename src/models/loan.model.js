@@ -71,10 +71,6 @@ const loanSchema = new mongoose.Schema(
       trim: true,
       default: 0
     },
-    totalInterestPayable: {
-      type: Number,
-      required: true
-    },
     guarantorName: {
       type: String,
       required: true,      
