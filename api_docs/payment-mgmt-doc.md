@@ -194,3 +194,51 @@ sample Response
     ]
 }
 ```
+
+## get Payment Details by account Number
+
+it will give the payment details according to the account number passed as a parameter
+
+Request type : GET
+URI: /api/v1/payment-mgmt/payment-details/{account-Number}
+
+sample request
+```
+```
+
+sample response 
+```
+{
+    "status": {
+        "code": 200,
+        "message": "Payment fetched successful",
+        "type": "success"
+    },
+    "data": [
+        {
+            "_id": "66a8af2c204b99bbf4aa2e0d",
+            "loanId": "66a882883a8f48101d543956",
+            "actualPaymentDate": "2024-07-29T06:04:56.933Z",
+            "paymentDate": "2024-07-30T09:15:24.436Z",
+            "actualEMI": 461,
+            "amountPaid": 470,
+            "interestComponent": 84.06392694063926,
+            "principalComponent": 385.93607305936075,
+            "paymentMode": "online"
+        },
+        {
+            "_id": "66a9d3e2e43771bba5013867",
+            "loanId": "66a882883a8f48101d543956",
+            "actualPaymentDate": "2024-07-29T06:04:56.933Z",
+            "paymentDate": "2024-07-31T06:04:18.142Z",
+            "actualEMI": 461,
+            "amountPaid": 450,
+            "interestComponent": 80.86994307875149,
+            "principalComponent": 369.1300569212485,
+            "paymentMode": "online"
+        }
+    ]
+}
+```
+
+

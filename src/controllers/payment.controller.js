@@ -165,4 +165,31 @@ const getAllPayments = asyncHandler(async (req, res) => {
   }
 });
 
-export { makePayment , getAllPayments};
+// method to get the payments made by account number
+const getPaymentsByAccountNumber = asyncHandler(async (req, res) => {
+  const accountNumber = req.params.accountNumber;
+  console.log("accountNumber===", accountNumber);
+  try {
+    const accountDetails = await Loan.findOne({ accountNumber }).select(
+      "-createdAt -updatedAt -__v"
+    );
+    console.log("accountDetails===", accountDetails);
+
+    // throw error if account not fount
+    if (isNullOrEmpty(accountDetails)) {
+      throw new ApiError(404, "Account not found");
+    }
+
+    const payments = await Payment.find({ loanId: accountDetails._id }).select(
+      "-createdAt -updatedAt -__v"
+    );
+
+    console.log("payments===", payments);
+    return res.status(200).json(new ApiResponse(200, "Payment fetched successful", payments));
+
+  } catch (error) {
+    throw new ApiError(500, error.message);
+  }
+});
+
+export { makePayment , getAllPayments, getPaymentsByAccountNumber};
