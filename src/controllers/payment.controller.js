@@ -5,6 +5,7 @@ import { ApiResponse } from "../utils/apiResponse.js";
 import { isNullOrEmpty } from "../utils/validationUtil.js";
 import { Loan } from "../models/loan.model.js";
 import { Payment } from "../models/payment.model.js";
+import { Customer } from "../models/customer.model.js"
 import {
   calculateAdditionalInterest,
   calculateEMI,
@@ -122,4 +123,46 @@ console.log("Loan details===",loan);
 
 });
 
-export { makePayment };
+// method is used to get all the payments made
+const getAllPayments = asyncHandler(async (req, res) => {
+  try {
+    const payments = await Payment.find().select("-createdAt -updatedAt -__v");
+
+    console.log("payments===", payments);
+
+    // Adding Loan details to each Payment
+    const paymentswithLoanDetails = await Promise.all(
+      payments.map(async (payment) => {
+        console.log("+++++Loan Id =====" + payment.loanId);
+        const loanByPayment = await Loan.findById(payment.loanId).select(
+          "-vehicle -createdAt -updatedAt -__v "
+        );
+        console.log("++++loanByPayment++", loanByPayment);
+
+        const customerDetails = await Customer.findById(
+          loanByPayment.customer
+        ).select("-vehicle -createdAt -updatedAt -__v ");
+        console.log("++++customerDetails++", customerDetails);
+
+        return {
+          ...payment.toObject(), // Convert Mongoose document to a plain JS object
+          accountDetails: loanByPayment,
+          customerDetails: customerDetails,
+        };
+      })
+    );
+    return res
+      .status(200)
+      .json(
+        new ApiResponse(
+          200,
+          "Payment fetched successful",
+          paymentswithLoanDetails
+        )
+      );
+  } catch (error) {
+    throw new ApiError(500, error.message);
+  }
+});
+
+export { makePayment , getAllPayments};
