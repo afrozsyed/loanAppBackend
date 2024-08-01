@@ -297,4 +297,52 @@ const getLoanDetails = asyncHandler(async (req, res) => {
     );
 });
 
-export { createLoanForNewCustomer, updateOutstandingAmount, getLoanDetails };
+// method to get the loan details by loan id
+const getLoanDetailsByLoanId = asyncHandler(async (req, res) => {
+  console.log(req.params);
+  const accountNumber = req.params.accountNumber;
+  console.log("accountNumber::", accountNumber);
+  const loan = await Loan.findOne({ accountNumber: accountNumber })
+    .populate({
+      path: "customer",
+      select: "-_id -createdAt -updatedAt -__v",
+    })
+    .populate({
+      path: "vehicle",
+      select: "-_id -createdAt -updatedAt -__v",
+    })
+    .select("-createdAt -updatedAt -__v");
+  console.log("Loan fetched from db====", loan);
+
+  // send error if loan is not available
+  if (isNullOrEmpty(loan)) {
+    throw new ApiError(400, "Loan with given account Number is not available");
+  }
+
+  // fetch the payment details and inclue in the new object
+  // getting the payment details for the loan
+  console.log("Loan Id======",loan._id);
+  const paymentsForLoan = await Payment.find({ loanId: loan._id }).select(
+    "-_id -createdAt -updatedAt -__v"
+  );
+  console.log("++++paymentsPerLoan++", paymentsForLoan);
+
+  // combine payment details with the loan details
+
+  const accountDetailsWithPayments = {
+    ...loan.toObject(),
+    payments: paymentsForLoan,
+  };
+  console.log("accountDetailsWithPayments::", accountDetailsWithPayments);
+  res
+    .status(200)
+    .json(
+      new ApiResponse(
+        200,
+        "loan details fetched successfully",
+        accountDetailsWithPayments
+      )
+    );
+});
+
+export { createLoanForNewCustomer, updateOutstandingAmount, getLoanDetails, getLoanDetailsByLoanId };
