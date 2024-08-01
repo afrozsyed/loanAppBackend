@@ -21,14 +21,17 @@ import customerRouter from "./routes/customer.routes.js";
 import loanRouter from "./routes/loan.routes.js";
 import helperRouter from "./routes/helper.routes.js";
 import paymentRouter from "./routes/payment.routes.js";
+import vehicleRouter from "./routes/vehicle.routes.js";
 
 
 // routes declaration
 app.use("/api/v1/user-mgmt", userRouter);
 app.use("/api/v1/cust-mgmt", customerRouter);
-app.use("/api/v1/loan-mgmt", loanRouter)
-app.use("/api/v1/helper-tools", helperRouter)
-app.use("/api/v1/payment-mgmt", paymentRouter)
+app.use("/api/v1/loan-mgmt", loanRouter);
+app.use("/api/v1/helper-tools", helperRouter);
+app.use("/api/v1/payment-mgmt", paymentRouter);
+app.use("/api/v1/vehicle-mgmt", vehicleRouter);
+
 
 
 export default app;
