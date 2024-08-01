@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { getAllVehicleDetails } from "../controllers/vehicle.controller.js";
+import { getAllVehicleDetails, getVehicleByNumber } from "../controllers/vehicle.controller.js";
 
 const router = Router();
 
@@ -10,5 +10,6 @@ router.route("/test").get((req, res) => {
 
 // route to create a sequence
 router.route("/vehicle-details").get(getAllVehicleDetails);
+router.route("/vehicle-details/:vehicleNumber").get(getVehicleByNumber);
 
 export default router;

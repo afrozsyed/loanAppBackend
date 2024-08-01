@@ -44,3 +44,33 @@ sample response
     }
 }
 ```
+
+## get Vehicle details by vehicle number
+
+Request Type : GET
+URI: /api/v1/vehicle-mgmt/vehicle-details/{vehicle-number}
+
+sample Request
+```
+```
+
+Sample Response 
+```
+{
+    "status": {
+        "code": 200,
+        "message": "Vehicle details fetched successfully",
+        "type": "success"
+    },
+    "data": {
+        "_id": "66a9d3b8e43771bba5013861",
+        "customer": "66a9d3b8e43771bba501385e",
+        "vehicleType": "Car",
+        "model": "Maruthi Alto",
+        "engineNumber": "Alto1245Hgasdy",
+        "chassisNumber": "XT12547SGT64472",
+        "vehicleNumber": "AP24GF3652",
+        "insurance": "ABC Insurance"
+    }
+}
+```
