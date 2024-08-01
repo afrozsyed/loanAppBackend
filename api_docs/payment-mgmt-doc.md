@@ -242,3 +242,36 @@ sample response
 ```
 
 
+## get Todays Payments
+
+this method will return payments done on current date
+
+Request Type: GET
+URL: /api/v1/payment-mgmt/todays-payments
+
+sample request
+```
+```
+sample response 
+```
+{
+    "status": {
+        "code": 200,
+        "message": "Payment fetched successful",
+        "type": "success"
+    },
+    "data": [
+        {
+            "_id": "66ab8ff17924190a21c04851",
+            "loanId": "66a9d3b8e43771bba5013864",
+            "actualPaymentDate": "2024-08-31T06:03:36.652Z",
+            "paymentDate": "2024-08-01T13:38:57.709Z",
+            "actualEMI": 4448,
+            "amountPaid": 4500,
+            "interestComponent": 1976.9631764008257,
+            "principalComponent": 2523.0368235991746,
+            "paymentMode": "cash"
+        }
+    ]
+}
+```

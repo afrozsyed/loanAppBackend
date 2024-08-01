@@ -192,4 +192,25 @@ const getPaymentsByAccountNumber = asyncHandler(async (req, res) => {
   }
 });
 
-export { makePayment , getAllPayments, getPaymentsByAccountNumber};
+
+// method used to fetch todays payments
+const getTodaysPayments = asyncHandler(async (req, res) => {
+  try {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0); // Set time to beginning of the day
+    console.log("+++today++",today);
+
+    const payments = await Payment.find({
+      paymentDate: { $gte: today },
+    }).select("-createdAt -updatedAt -__v");
+
+    console.log("+++++Payments====",payments);
+    return res
+      .status(200)
+      .json(new ApiResponse(200, "Payment fetched successful", payments));
+  } catch (error) {
+    throw new ApiError(500, error.message);
+  }
+});
+
+export { makePayment , getAllPayments, getPaymentsByAccountNumber, getTodaysPayments};
