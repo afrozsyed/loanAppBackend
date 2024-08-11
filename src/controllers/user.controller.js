@@ -67,33 +67,52 @@ const registerUser = asyncHandler(async (req, res) => {
 const loginUser = asyncHandler(async (req, res) => {
   // take the data from the request body
   console.log("==== login user ==", req.body);
-  const{userName, password} = req.body;
+  const { userName, password } = req.body;
   // validate the data
   if (
     [userName, password].some((field) => {
       return isNullOrEmpty(field);
     })
   ) {
+    res.status(400).json(new ApiResponse(400, "mandatory fields are missing"));
     throw new ApiError(400, "mandatory fields are missing");
   }
   // check if the user exist
   const user = await User.findOne({ userName });
-  if (!user) throw new ApiError(400, "userName or Password is not vallid");
+  if (!user) {
+    res
+      .status(400)
+      .json(new ApiResponse(400, "userName or Password is not vallid"));
+    throw new ApiError(400, "userName or Password is not vallid");
+  }
   // match the password if its corret or not
   const isValidPassword = await user.isPasswordMatched(password);
-  if (!isValidPassword) throw new ApiError(400, "userName or Password is not vallid");
+  if (!isValidPassword) {
+    res
+      .status(400)
+      .json(new ApiResponse(400, "userName or Password is not vallid"));
+    throw new ApiError(400, "userName or Password is not vallid");
+  }
   // generate the access token and refresh token
-  const {accessToken, refreshToken} = await generateAccessAndRefreshTokens(user._id);
+  const { accessToken, refreshToken } = await generateAccessAndRefreshTokens(
+    user._id
+  );
   // send the response back to the client with the access token and refresh token in cookies
-  const loggedInUser = await User.findById(user._id).select("-password -refreshToken");
+  const loggedInUser = await User.findById(user._id).select(
+    "-password -refreshToken -createdAt -updatedAt -__v"
+  );
   // send the response back to the client with the user details
   return res
-  .status(200)
-  .cookie("accessToken", accessToken, options)
-  .cookie("refreshToken", refreshToken, options)
-  .json(new ApiResponse(200, "login successful", 
-    {user: loggedInUser,accessToken,refreshToken}
-  ));
+    .status(200)
+    .cookie("accessToken", accessToken, options)
+    .cookie("refreshToken", refreshToken, options)
+    .json(
+      new ApiResponse(200, "login successful", {
+        user: loggedInUser,
+        accessToken,
+        refreshToken,
+      })
+    );
 });
 
 // controller method to logout user
@@ -125,7 +144,7 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
     // get the refresh token from the cookies or body
     const incommingRefreshToken =
       req.cookies.refreshToken || req.body.refreshToken;
-      console.log("incommingRefreshToken::",incommingRefreshToken);
+    console.log("incommingRefreshToken::", incommingRefreshToken);
     if (!incommingRefreshToken) {
       throw new ApiError(401, "Unauthorized request");
     }
@@ -134,7 +153,7 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
       incommingRefreshToken,
       process.env.REFRESH_TOKEN_KEY
     );
-    console.log("decodedToken::",decodedToken);
+    console.log("decodedToken::", decodedToken);
     const user = await User.findById(decodedToken?._id);
     if (!user) throw new ApiError(401, "Invalid refresh token");
     if (incommingRefreshToken !== user?.refreshToken)
@@ -163,7 +182,7 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
 // controller method to change password
 const changePassword = asyncHandler(async (req, res) => {
   // get the old and new passwords from the request
-  console.log("++body::",req.body);
+  console.log("++body::", req.body);
   const { oldPassword, newPassword } = req.body;
   // validate the passwords fields
   if (
@@ -186,5 +205,10 @@ const changePassword = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, "Password changed successfully"));
 });
 
-
-export { registerUser, loginUser, logoutUser, refreshAccessToken, changePassword};
+export {
+  registerUser,
+  loginUser,
+  logoutUser,
+  refreshAccessToken,
+  changePassword,
+};
