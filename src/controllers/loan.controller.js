@@ -345,4 +345,88 @@ const getLoanDetailsByLoanId = asyncHandler(async (req, res) => {
     );
 });
 
-export { createLoanForNewCustomer, updateOutstandingAmount, getLoanDetails, getLoanDetailsByLoanId };
+// method to get the dashboard details
+const getDashboardDetails = asyncHandler( async(req,res) => {
+
+  try {
+    console.log("Inside getDashboardDetails");
+  
+    // geting the Loan status
+    // fetch all the loan details
+    const loans = await Loan.find()
+      .populate({
+        path: "customer",
+        select: "-createdAt -updatedAt",
+      })
+      .populate({
+        path: "vehicle",
+        select: "-createdAt -updatedAt",
+      })
+      .select(" -createdAt -updatedAt");
+    console.log("loans from DB :::", loans);
+    const totalLoans = loans.length;
+    console.log("totalLoans::", totalLoans);
+  
+    const closedLoans = loans.filter((loan)=> loan.status == 'closed').length;
+    console.log("closedLoans::", closedLoans);
+  
+    const activeLoans = loans.filter((loan)=> loan.status == 'active').length;
+    console.log("activeLoans::", activeLoans);
+  
+    let totalDisbutedAmount = 0;
+    const overDueLoans = [];
+    const today = new Date();
+    loans.map((loan)=>{
+      console.log(loan.nextPaymentDate);
+      if (loan.nextPaymentDate < today) {
+        console.log("Inside if",loan.accountNumber);
+        overDueLoans.push(loan);
+      }
+      totalDisbutedAmount += loan.principalAmount;
+    });
+  
+    console.log("toatalDisbutedAmount::",totalDisbutedAmount);
+    console.log("overDueLoans::",overDueLoans.length);
+  
+    // todays collection.. 
+    let todaysCollection = 0;
+    const todayspayments = await Payment.find({
+      paymentDate: { $gte: new Date(new Date().setHours(0, 0, 0, 0)) },
+    }).select("-createdAt -updatedAt -__v");
+    console.log("todayspayments::", todayspayments);
+    todayspayments.map((payment)=>{
+      todaysCollection += payment.amountPaid;
+    });
+  
+      console.log("todaysCollection::", todaysCollection);
+  
+    
+  res
+  .status(200)
+  .json(
+    new ApiResponse(
+      200,
+      "Dashboard details fetched successfully",
+      {
+        totalLoans,
+        closedLoans,
+        activeLoans,
+        totalDisbutedAmount,
+        todaysCollection,
+        overDueLoans
+      }
+    )
+  );
+  } catch (error) {
+    throw error;    
+  }
+
+});
+
+export {
+  createLoanForNewCustomer,
+  updateOutstandingAmount,
+  getLoanDetails,
+  getLoanDetailsByLoanId,
+  getDashboardDetails,
+};
