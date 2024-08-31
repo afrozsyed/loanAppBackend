@@ -1,5 +1,5 @@
 import { User } from "../models/user.model.js";
-import {ApiError} from "../utils/ApiError.js";
+import {ApiError} from "../utils/apiError.js";
 import { Sequence } from "../models/sequence.model.js";
 
 const generateAccessAndRefreshTokens = async (user_id) => {
