@@ -423,6 +423,15 @@ const getDashboardDetails = asyncHandler( async(req,res) => {
 
 });
 
+// method to get the details of loans who missed the payment date
+const getOverDueLoans = asyncHandler(async (req, res) => {
+  try {
+    
+  } catch (error) {
+    
+  }
+});
+
 export {
   createLoanForNewCustomer,
   updateOutstandingAmount,

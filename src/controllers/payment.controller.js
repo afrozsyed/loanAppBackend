@@ -13,16 +13,18 @@ import {
 } from "../utils/commonHelperUtil.js";
 
 const makePayment = asyncHandler(async (req, res) => {
-  const { accountNumber, paymentMode, amountPaid } = req.body;
+  const { accountNumber, paymentMode, amountPaid, paymentDate } = req.body;
 console.log("req.Body", req.body);
 
   // validate the input fields
   if (
-    [accountNumber, paymentMode, amountPaid].some((field) => {
+    [accountNumber, paymentMode, amountPaid, paymentDate].some((field) => {
       isNullOrEmpty(field);
     })
   ) {
-    throw new ApiError(400, "All fields are required");
+    return res
+      .status(400)
+      .json(new ApiResponse(400, "Mandatory fields are missing"));
   }
 
   const session = await mongoose.startSession();
@@ -31,7 +33,7 @@ console.log("req.Body", req.body);
   try {
     const loan = await Loan.findOne({ accountNumber }).session(session);
     if (isNullOrEmpty(loan)) {
-      throw new ApiError(404, "Loan not found");
+      return res.status(400).json(new ApiResponse(400, "wrong account Number, Loan not Found"));
     }
 console.log("Loan details===",loan);
     const currentDate = new Date();
@@ -61,7 +63,7 @@ console.log("Loan details===",loan);
     const payment = new Payment({
       loanId: loan._id,
       actualPaymentDate: loan.nextPaymentDate, // get it from Loan schema.
-      paymentDate: currentDate,
+      paymentDate: paymentDate,
       actualEMI: loan.emiAmount,
       amountPaid: amountPaid,
       interestComponent: interestComponent,
@@ -91,14 +93,35 @@ console.log("Loan details===",loan);
 
     // update the tenure
     loan.tenure = newTenure;
-    const lastPaymentDateFromDB = loan.nextPaymentDate;
-    loan.lastPaymentDate = new Date(lastPaymentDateFromDB);
-    loan.nextPaymentDate.setMonth(lastPaymentDateFromDB.getMonth() + 1);
 
-    console.log("=====Loan",loan);
+    // Update nextPaymentDate
+    console.log("loan.lastPaymentDate====" + loan.lastPaymentDate);
+    let nextPaymentDate = new Date();
+    if(loan.lastPaymentDate){
+      nextPaymentDate = new Date(loan.lastPaymentDate);
+    }else{
+      nextPaymentDate = new Date(loan.startDate);
+    }
+    // const nextPaymentDate = new Date(loan.lastPaymentDate);
+    nextPaymentDate.setMonth(nextPaymentDate.getMonth() + 1);
+    loan.nextPaymentDate = nextPaymentDate;
+    console.log("loan.nextPaymentDate====" + loan.nextPaymentDate);
+    loan.lastPaymentDate = paymentDate;
+    console.log("loan.lastPaymentDate====" + loan.lastPaymentDate);
+
+    // const lastPaymentDateFromDB = loan.nextPaymentDate;
+    // console.log("lastPaymentDateFromDB====" + lastPaymentDateFromDB);
+    // loan.lastPaymentDate = new Date(lastPaymentDateFromDB);
+    // console.log("loan.lastPaymentDate====" + loan.lastPaymentDate);
+    // loan.nextPaymentDate.setMonth(lastPaymentDateFromDB.getMonth() + 1);
+    // console.log("loan.nextPaymentDate====" + loan.nextPaymentDate);
+
+    // console.log("=====Loan======",loan);
     await loan.save({ session });
     await session.commitTransaction();
     session.endSession();
+  const loanDetailsnew = await Loan.find({ accountNumber });
+  console.log("loanDetailsnew", loanDetailsnew);
 
     const paymentResponse = {
       AccountNumber: loan.accountNumber,
@@ -213,4 +236,27 @@ const getTodaysPayments = asyncHandler(async (req, res) => {
   }
 });
 
-export { makePayment , getAllPayments, getPaymentsByAccountNumber, getTodaysPayments};
+// method to fetch payments between the dates
+const getPaymentsBetweenDates = asyncHandler(async (req, res) => {
+  const { startDate, endDate } = req.body;
+  try {
+    const payments = await Payment.find({
+      paymentDate: { $gte: startDate, $lte: endDate },
+    }).select("-createdAt -updatedAt -__v");
+
+    console.log("+++++Payments====", payments);
+    return res
+      .status(200)
+      .json(new ApiResponse(200, "Payment fetched successful", payments));
+  } catch (error) {
+    throw new ApiError(500, error.message);
+  }
+});
+
+export {
+  makePayment,
+  getAllPayments,
+  getPaymentsByAccountNumber,
+  getTodaysPayments,
+  getPaymentsBetweenDates,
+};

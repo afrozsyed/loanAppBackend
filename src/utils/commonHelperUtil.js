@@ -62,4 +62,13 @@ const calculateNewTenue = (loanAmount, interestRate, emiAmount) => {
   return Math.ceil(tenure);
 };
 
-export { generateAccessAndRefreshTokens , getNextSequenceValue, calculateAdditionalInterest, calculateEMI, calculateNewTenue};
+// format the date
+const formatDateToDDMMYYYY = (date) => {
+  const d = new Date(date);
+  const day = d.getDate();
+  const month = d.getMonth(); // January is 0!
+  const year = d.getFullYear();
+  return new Date(year, month, day); // Returns a Date object without time
+};
+
+export { generateAccessAndRefreshTokens , getNextSequenceValue, calculateAdditionalInterest, calculateEMI, calculateNewTenue, formatDateToDDMMYYYY};
