@@ -1,6 +1,6 @@
 import asyncHandler from "../utils/asyncHandler.js";
 import mongoose from "mongoose";
-import { ApiError } from "../utils/ApiError.js";
+import { ApiError } from "../utils/apiError.js";
 import { ApiResponse } from "../utils/apiResponse.js";
 import { isNullOrEmpty } from "../utils/validationUtil.js";
 import { Loan } from "../models/loan.model.js";
