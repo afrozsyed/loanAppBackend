@@ -23,7 +23,8 @@ const registerUser = asyncHandler(async (req, res) => {
       return isNullOrEmpty(field);
     })
   ) {
-    throw new ApiError(400, "mandatory fields are missing");
+    return res.status(400).json(new ApiError(400, "mandatory fields are missing"));
+    // throw new ApiError(400, "mandatory fields are missing");
   }
 
   // check if user already exist
