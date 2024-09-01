@@ -9,6 +9,7 @@ import jwt from "jsonwebtoken";
 const options = {
   httpOnly: true,
   secure: true,
+  sameSite: 'Lax',
 };
 
 // controller method to register user
