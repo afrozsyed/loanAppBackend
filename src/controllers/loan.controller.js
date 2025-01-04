@@ -10,7 +10,7 @@ import {
   getNextSequenceValue,
   calculateAdditionalInterest,
   calculateEMI,
-  calculateNewTenue,
+  calculateNewTenue
 } from "../utils/commonHelperUtil.js";
 import { Payment } from "../models/payment.model.js";
 
@@ -376,22 +376,55 @@ const getDashboardDetails = asyncHandler( async(req,res) => {
     let totalDisbutedAmount = 0;
     const overDueLoans = [];
     const today = new Date();
-    loans.map((loan)=>{
+    
+    // Function to format dates
+    const formatDateToDDMMYYYY = (date) => {
+      return new Date(date).toLocaleDateString('en-GB'); // dd-mm-yyyy
+    };
+    
+    loans.map((loan) => {
       console.log(loan.nextPaymentDate);
-      if (loan.nextPaymentDate < today) {
-        console.log("Inside if",loan.accountNumber);
-        overDueLoans.push(loan);
+      
+      // Check if the next payment date is overdue
+      if (new Date(loan.nextPaymentDate) < today) {
+        console.log("Inside if", loan.accountNumber);
+    
+        // Format the loan's dates
+        const formattedLoan = {
+          ...loan,
+          startDate: formatDateToDDMMYYYY(loan.startDate),
+          outstandingUpdateDate: formatDateToDDMMYYYY(loan.outstandingUpdateDate),
+          lastPaymentDate: formatDateToDDMMYYYY(loan.lastPaymentDate),
+          nextPaymentDate: formatDateToDDMMYYYY(loan.nextPaymentDate),
+          customer: {
+            ...loan.customer,
+            dateOfBirth: formatDateToDDMMYYYY(loan.customer.dateOfBirth), // Format dateOfBirth
+          }
+        };
+        
+        console.log(formattedLoan);
+        
+        // Push the formatted loan to the overdue loans array
+        overDueLoans.push(formattedLoan);
       }
+    
+      // Add principal amount to total disbursed amount
       totalDisbutedAmount += loan.principalAmount;
     });
+    
+    console.log("Overdue Loans:", overDueLoans);
+    console.log("Total Disbursed Amount:", totalDisbutedAmount);
+    
   
     console.log("toatalDisbutedAmount::",totalDisbutedAmount);
     console.log("overDueLoans::",overDueLoans.length);
   
     // todays collection.. 
+    const startOfToday = new Date(new Date().setHours(0, 0, 0, 0));
+    const endOfToday = new Date(new Date().setHours(23, 59, 59, 999));
     let todaysCollection = 0;
     const todayspayments = await Payment.find({
-      paymentDate: { $gte: new Date(new Date().setHours(0, 0, 0, 0)) },
+      paymentDate: { $gte: startOfToday, $lt: endOfToday  },
     }).select("-createdAt -updatedAt -__v");
     console.log("todayspayments::", todayspayments);
     todayspayments.map((payment)=>{
